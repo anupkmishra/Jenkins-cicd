@@ -68,8 +68,8 @@ resource "aws_key_pair" "deployer1" {
 
 
 resource "aws_instance" "ubuntu" {
-  ami                    = "ami-04505e74c0741db8d"
-  instance_type          = "t2.micro"
+  ami                    = "ami-007855ac798b5175e"
+  instance_type          = "t2.medium"
   key_name               = aws_key_pair.deployer1.key_name
   vpc_security_group_ids = ["${aws_security_group.allow_SSH.id}"]
   tags = {
@@ -88,12 +88,11 @@ resource "aws_instance" "ubuntu" {
   provisioner "remote-exec" {
     inline = [
       "sudo apt update && upgrade",
-      "sudo apt install -y python3.8",
-      "wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add -",
-      "sudo sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ >  /etc/apt/sources.list.d/jenkins.list'",
-      "sudo apt-get update",
-      "sudo apt-get install default-jdk -y",
-      "sudo apt-get install -y jenkins",
+      "sudo apt install default-jdk -y",
+      "sudo curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee   /usr/share/keyrings/jenkins-keyring.asc > /dev/null",
+      "sudo echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]   https://pkg.jenkins.io/debian-stable binary/ | sudo tee   /etc/apt/sources.list.d/jenkins.list > /dev/null",
+      "sudo apt update",
+      "sudo apt install -y jenkins",
       "systemctl status jenkins --no-pager -l",
       "sudo systemctl enable --now jenkins",
       "sudo cat /var/lib/jenkins/secrets/initialAdminPassword",
